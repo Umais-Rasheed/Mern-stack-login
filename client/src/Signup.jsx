@@ -2,42 +2,41 @@ import React, { useState } from 'react';
 // Import Bootstrap CSS
 import 'bootstrap/dist/css/bootstrap.min.css';  
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
 
 function Signup() {
   // State to hold form data
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const navigate = useNavigate()
 
+  // axios.defaults.withCredentials = true;
 
   const collectData = async (e) => {
-      e.preventDefault();
-      try {
-          let result = await fetch('http://localhost:3000/register', {
-              method: 'POST',
-              body: JSON.stringify({ name, email, password }),
-              headers: {
-                  'Content-Type': 'application/json'
-              },
-          });
-          result = await result.json(); // Ensure this is a function call
-          localStorage.setItem("user", JSON.stringify(result));
-          console.log(result)
-          // Clear input fields
-          setName("");
-          setEmail("");
-          setPassword("");
+    e.preventDefault(); // Prevent default form submission behavior
 
-          // Optional: Show a success message
-          alert("Data submitted successfully!");
-          navigate('/login')
+    try {
+        let response = await axios.post('http://localhost:3000/register', { name, email, password }, {
+            withCredentials: true, // Ensure credentials are included
+        });
 
-      }
-      catch (error) {
-          console.error("Error submitting data:");
-      }
-  }
+        if (response.data.success) {
+            // Handle successful registration
+            alert('Registration successful!');
+            navigate('/login'); // Redirect to login page on success
+        } else {
+            // Handle error responses
+            alert(response.data.message || 'Registration failed');
+        }
+
+    } catch (error) {
+        console.error("Error submitting data:", error); // Log error if request fails
+        alert('Email already Exist.'); // Display generic error message
+    }
+  };
 
   return (
     <div className="bg-primary d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>

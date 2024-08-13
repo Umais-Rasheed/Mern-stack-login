@@ -1,49 +1,53 @@
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 function Login() {
+  const [email, setEmail] = useState(""); // State for email
+  const [password, setPassword] = useState(""); // State for password
+  const navigate = useNavigate(); // Hook for programmatic navigation
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const navigate = useNavigate();
+  // Ensure credentials are included in requests
+  axios.defaults.withCredentials = true;
 
+  // Handle form submission with fetch
   const collectData = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevent default form submission behavior
+
     try {
-      let response = await fetch('http://localhost:3000/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-        headers: {
-          'Content-Type': 'application/json'
-        },
-      });
+        let response = await fetch('http://localhost:3000/login', {
+            method: 'POST',
+            body: JSON.stringify({ email, password }),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include' // Ensure credentials are included
+        });
 
-      let result = await response.json();
+        let result = await response.json(); // Parse the JSON response
 
-      // Handle successful login
-      if (result === "Success") {
-        localStorage.setItem("user", JSON.stringify(result));
-        navigate('/home');
-      } else {
-        // Handle login failure
-        alert(result);
-      }
+        if (result.Login) { // Check for 'Login' in the response object
+            localStorage.setItem("user", JSON.stringify(result));
+            navigate('/home'); // Navigate to home page on success
+        } else {
+            alert(result.message);
+        }
 
-      // Clear input fields
-      setEmail("");
-      setPassword("");
+        setEmail("");
+        setPassword("");
 
     } catch (error) {
-      console.error("Error submitting data:", error);
+        console.error("Error submitting data:", error); // Log error if fetch fails
     }
-  }
+};
+
 
   return (
     <div className="bg-primary d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
       <div className="card p-4" style={{ maxWidth: '400px', width: '800px' }}>
         <h3 className="text-center mb-4">Log In</h3>
-        <form onSubmit={collectData}>
+        <form onSubmit={collectData}> {/* Use collectData as the form submit handler */}
           <div className="mb-3">
             <label htmlFor="email" className="form-label">Email address</label>
             <input
